@@ -1,0 +1,490 @@
+<title>Môj diár</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Figtree:wght@400;500;600;700&family=JetBrains+Mono:wght@500&display=swap">
+<style>
+/* Layout: sticky header with quick-add, tabbed views (týždeň / mesiac / úlohy / poznámky), editor as a sheet */
+:root{
+  --bg:#EEF1F6; --surface:#FFFFFF; --sunk:#E4E9F1; --ink:#15213A; --muted:#5B6880; --line:#D6DDE8;
+  --accent:#2D55E0; --accent-ink:#FFFFFF; --event:#0B8A78; --note:#B4620E; --danger:#C93434; --marker:#FFE24D; --marker-ink:#15213A;
+  --display:"Bricolage Grotesque", "Segoe UI", system-ui, sans-serif;
+  --body:"Figtree", "Segoe UI", system-ui, sans-serif;
+  --mono:"JetBrains Mono", ui-monospace, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0E1420; --surface:#161F31; --sunk:#111928; --ink:#E5EAF4; --muted:#94A0B7; --line:#26324A;
+  --accent:#7D9BFF; --accent-ink:#0E1420; --event:#3CC6AF; --note:#E9A257; --danger:#FF7A7A; --marker:#F0CF45; --marker-ink:#15213A; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0E1420; --surface:#161F31; --sunk:#111928; --ink:#E5EAF4; --muted:#94A0B7; --line:#26324A;
+  --accent:#7D9BFF; --accent-ink:#0E1420; --event:#3CC6AF; --note:#E9A257; --danger:#FF7A7A; --marker:#F0CF45; --marker-ink:#15213A; color-scheme:dark}
+
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:15px;line-height:1.45}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--surface)}
+button,input,select,textarea{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.wrap{max-width:1280px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+
+header{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--surface);border-bottom:1px solid var(--line)}
+header .wrap{padding-block:12px;display:grid;gap:10px}
+.top{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+h1{font-family:var(--display);font-weight:800;font-size:24px;letter-spacing:-.02em;margin:0;margin-right:auto}
+h1 small{font-family:var(--mono);font-weight:500;font-size:12px;color:var(--muted);letter-spacing:0;margin-left:8px}
+.tabs{display:flex;gap:2px;background:var(--sunk);padding:3px;border-radius:10px}
+.tabs button{border:0;background:transparent;padding:6px 12px;border-radius:8px;font-weight:600;color:var(--muted)}
+.tabs button[aria-selected="true"]{background:var(--surface);color:var(--ink);box-shadow:0 1px 2px rgb(0 0 0 / .12)}
+
+.quick{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.types{display:flex;gap:4px}
+.chip{border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:5px 11px;font-weight:600;font-size:13px;color:var(--muted)}
+.chip[aria-pressed="true"].t-task{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.chip[aria-pressed="true"].t-event{background:var(--event);border-color:var(--event);color:var(--surface)}
+.chip[aria-pressed="true"].t-note{background:var(--note);border-color:var(--note);color:var(--surface)}
+.field{border:1px solid var(--line);background:var(--bg);border-radius:8px;padding:7px 10px;min-width:0}
+#qTitle{flex:1 1 260px}
+#qDate{flex:0 0 auto;width:150px}#qTime{flex:0 0 auto;width:105px}
+.btn{border:1px solid var(--line);background:var(--surface);border-radius:8px;padding:7px 12px;font-weight:600;display:inline-flex;gap:6px;align-items:center}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.btn.danger{color:var(--danger)}
+.btn.danger.armed{background:var(--danger);border-color:var(--danger);color:var(--surface)}
+.btn svg{width:16px;height:16px}
+.hint{font-size:12.5px;color:var(--muted)}
+.status{font-size:12.5px;color:var(--muted)}
+.status b{color:var(--note);font-weight:600}
+
+main .wrap{padding-block:18px 48px;display:grid;gap:16px}
+.navrow{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.navrow h2{font-family:var(--display);font-weight:600;font-size:20px;margin:0 auto 0 0;text-wrap:balance}
+.navrow h2 .wk{font-family:var(--mono);font-size:13px;font-weight:500;color:var(--muted);margin-right:8px}
+.iconbtn{border:1px solid var(--line);background:var(--surface);border-radius:8px;width:34px;height:34px;display:grid;place-items:center}
+.iconbtn svg{width:16px;height:16px}
+
+.summary{display:flex;gap:18px;flex-wrap:wrap;font-size:13.5px;color:var(--muted)}
+.summary strong{font-family:var(--mono);font-size:15px;color:var(--ink);margin-right:4px}
+.summary .late strong{color:var(--danger)}
+
+.week{display:grid;grid-template-columns:1fr;gap:10px}
+@media (min-width:1100px){.week{grid-template-columns:repeat(7,minmax(0,1fr));gap:8px}}
+.day{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:10px;display:flex;flex-direction:column;gap:6px;min-width:0;min-height:90px}
+@media (min-width:1100px){.day{min-height:340px}}
+.day.weekend{background:var(--sunk)}
+.dayhead{display:flex;align-items:baseline;gap:6px}
+.dayhead .dn{font-weight:700;font-size:13px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted)}
+.dayhead .dd{font-family:var(--display);font-weight:800;font-size:22px;line-height:1}
+.day.today .dd{background:var(--marker);color:var(--marker-ink);padding:0 5px;border-radius:4px}
+.day.today .dn{color:var(--ink)}
+.dayhead .add{margin-left:auto;border:0;background:transparent;color:var(--muted);width:26px;height:26px;border-radius:6px;display:grid;place-items:center}
+.dayhead .add:hover{background:var(--sunk);color:var(--ink)}
+.dayhead .add svg{width:15px;height:15px}
+.empty-day{font-size:12.5px;color:var(--muted);opacity:.7}
+
+.item{display:flex;gap:7px;align-items:flex-start;padding:6px 7px;border-radius:7px;background:var(--bg);border-left:3px solid var(--accent);cursor:pointer;min-width:0;text-align:left;width:100%;border-top:0;border-right:0;border-bottom:0}
+.day.weekend .item{background:var(--surface)}
+.item.t-event{border-left-color:var(--event)}
+.item.t-note{border-left-color:var(--note)}
+.item .tx{min-width:0;flex:1;font-size:14px;overflow-wrap:anywhere}
+.item .tm{font-family:var(--mono);font-size:11.5px;color:var(--muted);display:block}
+.item.done .tx .ti{text-decoration:line-through;color:var(--muted)}
+.item.late .tm{color:var(--danger)}
+.item .pic{width:14px;height:14px;color:var(--muted);flex:0 0 auto;margin-top:3px}
+.check{flex:0 0 auto;width:18px;height:18px;border-radius:5px;border:2px solid var(--accent);background:transparent;padding:0;margin-top:1px;display:grid;place-items:center}
+.check svg{width:12px;height:12px;opacity:0}
+.item.done .check{background:var(--accent)}
+.item.done .check svg{opacity:1;color:var(--accent-ink)}
+
+.month{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:4px}
+.month .mh{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);padding:4px}
+.cell{background:var(--surface);border:1px solid var(--line);border-radius:8px;min-height:92px;padding:5px;display:flex;flex-direction:column;gap:3px;text-align:left;min-width:0;overflow:hidden}
+.cell.out{opacity:.45}
+.cell .n{font-family:var(--mono);font-size:12px}
+.cell.today .n{background:var(--marker);color:var(--marker-ink);border-radius:3px;padding:0 4px;align-self:flex-start}
+.cell .lbl{font-size:11.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;border-left:2px solid var(--accent);padding-left:4px}
+.cell .lbl.t-event{border-color:var(--event)}.cell .lbl.t-note{border-color:var(--note)}
+.cell .lbl.done{text-decoration:line-through;color:var(--muted)}
+.cell .more{font-size:11px;color:var(--muted)}
+@media (max-width:600px){.cell{min-height:58px}.cell .lbl{font-size:0;height:5px;border-left:0;border-radius:3px;background:var(--accent);padding:0}.cell .lbl.t-event{background:var(--event)}.cell .lbl.t-note{background:var(--note)}}
+
+.group{display:grid;gap:6px}
+.group h3{font-size:12.5px;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);margin:6px 0 0;font-weight:700}
+.group.late h3{color:var(--danger)}
+.list{display:grid;gap:5px;max-width:760px}
+.list .item{background:var(--surface);border:1px solid var(--line);border-left-width:3px;padding:9px 10px}
+
+.notes{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:12px}
+.note{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:12px;display:grid;gap:6px;cursor:pointer;text-align:left;align-content:start;min-width:0}
+.note h4{margin:0;font-size:15.5px;overflow-wrap:anywhere}
+.note p{margin:0;font-size:13.5px;color:var(--muted);white-space:pre-wrap;overflow-wrap:anywhere;display:-webkit-box;-webkit-line-clamp:6;-webkit-box-orient:vertical;overflow:hidden}
+.note .meta{font-family:var(--mono);font-size:11.5px;color:var(--muted)}
+.note img{border-radius:8px;width:100%;max-height:180px;object-fit:cover;background:var(--sunk)}
+
+.blank{background:var(--surface);border:1px dashed var(--line);border-radius:12px;padding:28px;text-align:center;color:var(--muted)}
+.blank strong{display:block;color:var(--ink);font-size:16px;margin-bottom:4px}
+
+/* editor sheet */
+.overlay{position:fixed;inset:0;background:rgb(10 15 25 / .45);z-index:20;display:grid;place-items:center;padding:16px}
+.sheet{background:var(--surface);border-radius:16px;width:min(560px,100%);max-height:calc(100% - 16px);overflow:auto;padding:18px;display:grid;gap:12px;box-shadow:0 20px 50px rgb(0 0 0 / .3)}
+.sheet h2{font-family:var(--display);font-weight:600;font-size:19px;margin:0}
+.sheet label{display:grid;gap:4px;font-size:12.5px;font-weight:600;color:var(--muted)}
+.sheet .row{display:flex;gap:10px;flex-wrap:wrap}
+.sheet .row label{flex:1 1 140px}
+.sheet textarea{min-height:110px;resize:vertical}
+.sheet .field{width:100%;font-weight:400;color:var(--ink)}
+.imgs{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:8px}
+.imgs figure{margin:0;position:relative}
+.imgs img{border-radius:8px;width:100%;aspect-ratio:4/3;object-fit:cover;background:var(--sunk);cursor:zoom-in}
+.imgs .rm{position:absolute;top:4px;right:4px;border:0;border-radius:6px;background:rgb(0 0 0 / .6);color:#fff;font-size:12px;padding:2px 6px}
+.drop{border:1px dashed var(--line);border-radius:10px;padding:12px;font-size:13px;color:var(--muted);display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.actions{display:flex;gap:8px;flex-wrap:wrap}
+.actions .sp{margin-left:auto}
+.lightbox{position:fixed;inset:0;z-index:30;background:rgb(0 0 0 / .85);display:grid;place-items:center;padding:16px;cursor:zoom-out}
+.lightbox img{max-height:100%;border-radius:8px}
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(16px + env(safe-area-inset-bottom,0px));background:var(--ink);color:var(--bg);padding:8px 14px;border-radius:8px;font-size:13.5px;z-index:40}
+body.dragging main{outline:3px dashed var(--accent);outline-offset:-8px}
+@media (prefers-reduced-motion:no-preference){.item,.cell,.note{transition:background .12s}}
+</style>
+
+<header>
+  <div class="wrap">
+    <div class="top">
+      <h1>Môj diár<small id="status" class="status"></small></h1>
+      <div class="tabs" role="tablist">
+        <button role="tab" data-view="week" aria-selected="true">Týždeň</button>
+        <button role="tab" data-view="month" aria-selected="false">Mesiac</button>
+        <button role="tab" data-view="tasks" aria-selected="false">Úlohy</button>
+        <button role="tab" data-view="notes" aria-selected="false">Poznámky</button>
+      </div>
+    </div>
+    <form class="quick" id="quick" autocomplete="off">
+      <div class="types" id="qTypes">
+        <button type="button" class="chip t-task" data-type="task" aria-pressed="true">Úloha</button>
+        <button type="button" class="chip t-event" data-type="event" aria-pressed="false">Termín</button>
+        <button type="button" class="chip t-note" data-type="note" aria-pressed="false">Poznámka</button>
+      </div>
+      <input class="field" id="qTitle" placeholder="Čo treba urobiť? napr. Odovzdať známky I.C" aria-label="Názov">
+      <input class="field" id="qDate" type="date" aria-label="Dátum">
+      <input class="field" id="qTime" type="time" aria-label="Čas">
+      <button class="btn primary" type="submit"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>Pridať</button>
+      <button class="btn" type="button" id="qPhoto" data-needs-assets><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/></svg>Fotka / screenshot</button>
+      <input type="file" id="qFile" accept="image/*" multiple hidden>
+    </form>
+    <div class="hint" data-needs-assets>Screenshot vložíš aj cez Ctrl+V kdekoľvek na stránke, alebo ho sem pretiahni myšou.</div>
+  </div>
+</header>
+
+<main><div class="wrap" id="view"></div></main>
+
+<script>
+(function(){
+const DN=['Po','Ut','St','Št','Pi','So','Ne'];
+const DL=['Pondelok','Utorok','Streda','Štvrtok','Piatok','Sobota','Nedeľa'];
+const MN=['január','február','marec','apríl','máj','jún','júl','august','september','október','november','december'];
+const MG=['januára','februára','marca','apríla','mája','júna','júla','augusta','septembra','októbra','novembra','decembra'];
+const TYPE_LABEL={task:'Úloha',event:'Termín',note:'Poznámka'};
+const IC={
+  plus:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>',
+  left:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg>',
+  right:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"/></svg>',
+  tick:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7"/></svg>',
+  pic:'<svg class="pic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="9" cy="10" r="1.8"/><path d="M21 16l-5-5-8 8"/></svg>'
+};
+
+const pad=n=>String(n).padStart(2,'0');
+const ymd=d=>d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate());
+const parse=s=>{const[a,b,c]=s.split('-').map(Number);return new Date(a,b-1,c)};
+const addDays=(d,n)=>{const x=new Date(d.getFullYear(),d.getMonth(),d.getDate());x.setDate(x.getDate()+n);return x};
+const monday=d=>addDays(d,-((d.getDay()+6)%7));
+const isoWeek=d=>{const t=new Date(Date.UTC(d.getFullYear(),d.getMonth(),d.getDate()));const w=t.getUTCDay()||7;t.setUTCDate(t.getUTCDate()+4-w);const y=new Date(Date.UTC(t.getUTCFullYear(),0,1));return Math.ceil(((t-y)/864e5+1)/7)};
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const today=()=>ymd(new Date());
+const fmtShort=s=>{const d=parse(s);return d.getDate()+'. '+MG[d.getMonth()]};
+const fmtWithDay=s=>{const d=parse(s);return DN[(d.getDay()+6)%7]+' '+d.getDate()+'. '+(d.getMonth()+1)+'.'};
+const newId=()=>(crypto.randomUUID?crypto.randomUUID():Date.now().toString(36)+Math.random().toString(36).slice(2));
+
+let items=new Map(), loaded=false, store=null, assets=null, mode='';
+let view='week', anchor=new Date(), qType='task';
+try{const v=localStorage.getItem('diar-view');if(v)view=v}catch(e){}
+
+const $=s=>document.querySelector(s);
+const viewEl=$('#view');
+
+function toast(msg){const t=document.createElement('div');t.className='toast';t.textContent=msg;document.body.appendChild(t);setTimeout(()=>t.remove(),2600)}
+
+/* ---------- store ---------- */
+function useLocal(){
+  mode='local';
+  const KEY='diar-items';
+  try{const raw=JSON.parse(localStorage.getItem(KEY)||'[]');items=new Map(raw.map(i=>[i.id,i]))}catch(e){}
+  const persist=()=>{try{localStorage.setItem(KEY,JSON.stringify([...items.values()]))}catch(e){}};
+  store={
+    save:async it=>{items.set(it.id,{...it});persist();render()},
+    patch:async(id,o)=>{const it=items.get(id);if(it){items.set(id,{...it,...o});persist();render()}},
+    remove:async id=>{items.delete(id);persist();render()}
+  };
+  loaded=true;
+  $('#status').innerHTML='<b>len v tomto prehliadači</b>';
+  render();
+}
+async function init(){
+  render();
+  const use=window.claude&&window.claude.use;
+  if(!use){useLocal();return}
+  let db=null,user=null;
+  try{[db,user,assets]=await Promise.all([window.claude.use('db'),window.claude.use('user'),window.claude.use('assets')])}catch(e){}
+  let uid=null;
+  try{uid=user?await user.id():null}catch(e){}
+  applyAssetsVisibility();
+  if(!db||!uid){useLocal();return}
+  mode='cloud';
+  const col=db.collection('data/users/'+uid);
+  col.onSnapshot(snap=>{
+    items=new Map(snap.docs.map(d=>[d.id,{id:d.id,...d.data()}]));
+    loaded=true;render();
+  },err=>{toast('Spojenie so serverom sa prerušilo. Obnov stránku.');});
+  store={
+    save:it=>{const{id,...rest}=it;return col.doc(id).set(rest).catch(writeErr)},
+    patch:(id,o)=>col.doc(id).update(o).catch(writeErr),
+    remove:id=>col.doc(id).delete().catch(writeErr)
+  };
+  $('#status').textContent='';
+}
+function writeErr(e){toast(e&&e.code==='quota_exceeded'?'Úložisko je plné. Zmaž staré položky.':'Nepodarilo sa uložiť. Skús to znova.')}
+function applyAssetsVisibility(){document.querySelectorAll('[data-needs-assets]').forEach(el=>el.hidden=!assets)}
+applyAssetsVisibility();
+
+/* ---------- images ---------- */
+async function shrink(file){
+  const ok=['image/png','image/jpeg','image/gif','image/webp'];
+  if(ok.includes(file.type)&&file.size<1.5e6)return file;
+  try{
+    const bmp=await createImageBitmap(file);
+    const s=Math.min(1,2000/Math.max(bmp.width,bmp.height));
+    const c=document.createElement('canvas');c.width=Math.round(bmp.width*s);c.height=Math.round(bmp.height*s);
+    c.getContext('2d').drawImage(bmp,0,0,c.width,c.height);
+    return await new Promise(r=>c.toBlob(b=>r(b||file),'image/jpeg',.85));
+  }catch(e){return file}
+}
+async function uploadFiles(files){
+  const out=[];
+  if(!assets){toast('Obrázky sa dajú pridať len keď máš diár otvorený v Claude.');return out}
+  for(const f of files){
+    if(!f.type.startsWith('image/'))continue;
+    try{const b=await shrink(f);const r=await assets.upload(b);out.push(r.id)}
+    catch(e){toast(e&&e.code==='too_large'?'Obrázok je príliš veľký.':e&&e.code==='unsupported_type'?'Tento formát obrázka nepodporujem.':'Obrázok sa nepodarilo nahrať.')}
+  }
+  return out;
+}
+const imgSrc=id=>'/_blob/'+id;
+
+/* ---------- derived ---------- */
+function sorted(list){return list.sort((a,b)=>(a.date||'9').localeCompare(b.date||'9')||(a.time||'99').localeCompare(b.time||'99')||(a.createdAt||0)-(b.createdAt||0))}
+const isLate=i=>i.type==='task'&&!i.done&&i.date&&i.date<today();
+function onDate(s){return sorted([...items.values()].filter(i=>i.date===s))}
+
+/* ---------- render ---------- */
+function itemRow(i,opts={}){
+  const late=isLate(i);
+  const meta=[];
+  if(opts.showDate&&i.date)meta.push(fmtWithDay(i.date));
+  if(i.time)meta.push(i.time);
+  if(i.type!=='task'&&!opts.showDate)meta.unshift(TYPE_LABEL[i.type]);
+  const check=i.type==='task'?`<span class="check" role="checkbox" aria-checked="${!!i.done}" aria-label="Hotovo" data-act="toggle" data-id="${i.id}">${IC.tick}</span>`:'';
+  return `<button class="item t-${i.type}${i.done?' done':''}${late?' late':''}" data-act="open" data-id="${i.id}">${check}<span class="tx"><span class="ti">${esc(i.title||'(bez názvu)')}</span>${meta.length?`<span class="tm">${esc(meta.join(' · '))}${late?' · po termíne':''}</span>`:''}</span>${(i.images||[]).length?IC.pic:''}</button>`;
+}
+function blank(title,text){return `<div class="blank"><strong>${title}</strong>${text}</div>`}
+
+function renderWeek(){
+  const mon=monday(anchor),sun=addDays(mon,6),t=today();
+  const range=mon.getMonth()===sun.getMonth()?`${mon.getDate()}.–${sun.getDate()}. ${MG[sun.getMonth()]} ${sun.getFullYear()}`:`${mon.getDate()}. ${MG[mon.getMonth()]} – ${sun.getDate()}. ${MG[sun.getMonth()]} ${sun.getFullYear()}`;
+  const all=[...items.values()];
+  const inWeek=all.filter(i=>i.date&&i.date>=ymd(mon)&&i.date<=ymd(sun));
+  const openTasks=inWeek.filter(i=>i.type==='task'&&!i.done).length;
+  const events=inWeek.filter(i=>i.type==='event').length;
+  const late=all.filter(isLate).length;
+  let h=`<div class="navrow"><h2><span class="wk">týždeň ${isoWeek(mon)}</span>${range}</h2>
+    <button class="iconbtn" data-act="prev" aria-label="Predchádzajúci týždeň">${IC.left}</button>
+    <button class="btn" data-act="today">Dnes</button>
+    <button class="iconbtn" data-act="next" aria-label="Ďalší týždeň">${IC.right}</button></div>
+    <div class="summary"><span><strong>${openTasks}</strong>otvorených úloh</span><span><strong>${events}</strong>termínov</span>${late?`<span class="late"><strong>${late}</strong>po termíne (v záložke Úlohy)</span>`:''}</div><div class="week">`;
+  for(let k=0;k<7;k++){
+    const d=addDays(mon,k),s=ymd(d),list=onDate(s);
+    h+=`<section class="day${k>4?' weekend':''}${s===t?' today':''}"><div class="dayhead"><span class="dn">${DL[k]}</span><span class="dd">${d.getDate()}.</span><button class="add" data-act="addOn" data-date="${s}" aria-label="Pridať na ${DL[k]}">${IC.plus}</button></div>
+    ${list.length?list.map(i=>itemRow(i)).join(''):'<div class="empty-day">voľno</div>'}</section>`;
+  }
+  return h+'</div>';
+}
+function renderMonth(){
+  const first=new Date(anchor.getFullYear(),anchor.getMonth(),1),start=monday(first),t=today();
+  let h=`<div class="navrow"><h2>${MN[first.getMonth()]} ${first.getFullYear()}</h2>
+    <button class="iconbtn" data-act="prev" aria-label="Predchádzajúci mesiac">${IC.left}</button>
+    <button class="btn" data-act="today">Dnes</button>
+    <button class="iconbtn" data-act="next" aria-label="Ďalší mesiac">${IC.right}</button></div><div class="month">`;
+  h+=DN.map(d=>`<div class="mh">${d}</div>`).join('');
+  for(let k=0;k<42;k++){
+    const d=addDays(start,k),s=ymd(d),list=onDate(s);
+    if(k===35&&d.getMonth()!==first.getMonth())break;
+    h+=`<button class="cell${d.getMonth()!==first.getMonth()?' out':''}${s===t?' today':''}" data-act="gotoWeek" data-date="${s}" aria-label="${d.getDate()}. ${MG[d.getMonth()]}, ${list.length} položiek"><span class="n">${d.getDate()}</span>${list.slice(0,3).map(i=>`<span class="lbl t-${i.type}${i.done?' done':''}">${esc(i.title)}</span>`).join('')}${list.length>3?`<span class="more">+${list.length-3}</span>`:''}</button>`;
+  }
+  return h+'</div>';
+}
+let showDone=false;
+function renderTasks(){
+  const t=today(),wkEnd=ymd(addDays(monday(new Date()),6));
+  const tasks=sorted([...items.values()].filter(i=>i.type==='task'));
+  const open=tasks.filter(i=>!i.done),done=tasks.filter(i=>i.done);
+  const g=[
+    ['Po termíne','late',open.filter(i=>i.date&&i.date<t)],
+    ['Dnes','',open.filter(i=>i.date===t)],
+    ['Tento týždeň','',open.filter(i=>i.date&&i.date>t&&i.date<=wkEnd)],
+    ['Neskôr','',open.filter(i=>i.date&&i.date>wkEnd)],
+    ['Bez termínu','',open.filter(i=>!i.date)]
+  ];
+  let h=`<div class="navrow"><h2>Úlohy</h2><button class="btn" data-act="toggleDone">${showDone?'Skryť hotové':`Zobraziť hotové (${done.length})`}</button></div>`;
+  if(!open.length)h+=blank('Všetko máš hotové','Novú úlohu napíš do poľa hore a stlač Enter.');
+  for(const[name,cls,list]of g)if(list.length)h+=`<div class="group ${cls}"><h3>${name} · ${list.length}</h3><div class="list">${list.map(i=>itemRow(i,{showDate:true})).join('')}</div></div>`;
+  if(showDone&&done.length)h+=`<div class="group"><h3>Hotové · ${done.length}</h3><div class="list">${done.slice().reverse().map(i=>itemRow(i,{showDate:true})).join('')}</div></div>`;
+  return h;
+}
+function renderNotes(){
+  const notes=[...items.values()].filter(i=>i.type==='note').sort((a,b)=>(b.updatedAt||b.createdAt||0)-(a.updatedAt||a.createdAt||0));
+  let h=`<div class="navrow"><h2>Poznámky</h2><button class="btn" data-act="newNote">${IC.plus.replace('<svg','<svg width="16" height="16"')}Nová poznámka</button></div>`;
+  if(!notes.length)return h+blank('Zatiaľ žiadne poznámky','Prepni hore na „Poznámka“, alebo vlož screenshot cez Ctrl+V.');
+  return h+`<div class="notes">${notes.map(n=>`<button class="note" data-act="open" data-id="${n.id}">${(n.images||[])[0]?`<img src="${imgSrc(n.images[0])}" alt="" loading="lazy">`:''}<h4>${esc(n.title||'(bez názvu)')}</h4>${n.text?`<p>${esc(n.text)}</p>`:''}<span class="meta">${n.date?fmtShort(n.date)+' · ':''}${(n.images||[]).length?(n.images.length+' obr.'):''}</span></button>`).join('')}</div>`;
+}
+function render(){
+  document.querySelectorAll('.tabs button').forEach(b=>b.setAttribute('aria-selected',b.dataset.view===view));
+  if(!loaded){viewEl.innerHTML=blank('Načítavam diár…','Chvíľku strpenia.');return}
+  viewEl.innerHTML=view==='month'?renderMonth():view==='tasks'?renderTasks():view==='notes'?renderNotes():renderWeek();
+}
+
+/* ---------- interactions ---------- */
+document.querySelector('.tabs').addEventListener('click',e=>{
+  const b=e.target.closest('[data-view]');if(!b)return;view=b.dataset.view;
+  try{localStorage.setItem('diar-view',view)}catch(_){}
+  render();
+});
+viewEl.addEventListener('click',e=>{
+  const el=e.target.closest('[data-act]');if(!el)return;
+  const a=el.dataset.act;
+  if(a==='toggle'){e.stopPropagation();const it=items.get(el.dataset.id);if(it&&store)store.patch(it.id,{done:!it.done,updatedAt:Date.now()});return}
+  if(a==='open'){openEditor(items.get(el.dataset.id));return}
+  if(a==='addOn'){openEditor(null,{type:qType==='note'?'task':qType,date:el.dataset.date});return}
+  if(a==='newNote'){openEditor(null,{type:'note'});return}
+  if(a==='gotoWeek'){anchor=parse(el.dataset.date);view='week';render();return}
+  if(a==='today'){anchor=new Date();render();return}
+  if(a==='prev'||a==='next'){const s=a==='prev'?-1:1;anchor=view==='month'?new Date(anchor.getFullYear(),anchor.getMonth()+s,1):addDays(anchor,7*s);render();return}
+  if(a==='toggleDone'){showDone=!showDone;render();return}
+});
+
+/* quick add */
+const qDate=$('#qDate');
+function setQType(t){qType=t;document.querySelectorAll('#qTypes .chip').forEach(c=>c.setAttribute('aria-pressed',c.dataset.type===t));
+  $('#qTitle').placeholder=t==='task'?'Čo treba urobiť? napr. Odovzdať známky I.C':t==='event'?'Aký termín? napr. Rodičovské združenie':'Názov poznámky';
+  if(t==='note')qDate.value='';else if(!qDate.value)qDate.value=today();}
+$('#qTypes').addEventListener('click',e=>{const c=e.target.closest('.chip');if(c)setQType(c.dataset.type)});
+qDate.value=today();
+$('#quick').addEventListener('submit',async e=>{
+  e.preventDefault();
+  const title=$('#qTitle').value.trim();if(!title||!store)return;
+  const now=Date.now();
+  await store.save({id:newId(),type:qType,title,date:qDate.value||'',time:$('#qTime').value||'',text:'',images:[],done:false,createdAt:now,updatedAt:now});
+  $('#qTitle').value='';$('#qTime').value='';
+  toast(TYPE_LABEL[qType]+' pridaná');
+});
+$('#qPhoto').addEventListener('click',()=>$('#qFile').click());
+$('#qFile').addEventListener('change',async e=>{
+  const files=[...e.target.files];e.target.value='';if(!files.length)return;
+  newWithImages(files,$('#qTitle').value.trim());$('#qTitle').value='';
+});
+async function newWithImages(files,title){
+  const ed=openEditor(null,{type:'note',title:title||'',date:today()});
+  await ed.addFiles(files);
+}
+
+/* paste + drop */
+document.addEventListener('paste',e=>{
+  const files=[...(e.clipboardData?.files||[])].filter(f=>f.type.startsWith('image/'));
+  if(!files.length)return;
+  e.preventDefault();
+  if(currentEditor)currentEditor.addFiles(files);else newWithImages(files,'Screenshot '+fmtShort(today()));
+});
+let dragDepth=0;
+document.addEventListener('dragenter',e=>{if([...(e.dataTransfer?.types||[])].includes('Files')){dragDepth++;document.body.classList.add('dragging')}});
+document.addEventListener('dragleave',()=>{dragDepth=Math.max(0,dragDepth-1);if(!dragDepth)document.body.classList.remove('dragging')});
+document.addEventListener('dragover',e=>{if([...(e.dataTransfer?.types||[])].includes('Files'))e.preventDefault()});
+document.addEventListener('drop',e=>{
+  dragDepth=0;document.body.classList.remove('dragging');
+  const files=[...(e.dataTransfer?.files||[])].filter(f=>f.type.startsWith('image/'));
+  if(!files.length)return;e.preventDefault();
+  if(currentEditor)currentEditor.addFiles(files);else newWithImages(files,'Obrázok '+fmtShort(today()));
+});
+
+/* ---------- editor ---------- */
+let currentEditor=null;
+function openEditor(item,defaults={}){
+  if(currentEditor)currentEditor.close();
+  const isNew=!item;
+  const d=item?{...item,images:[...(item.images||[])]}:{id:newId(),type:'task',title:'',date:'',time:'',text:'',images:[],done:false,...defaults};
+  const origImages=new Set(item?item.images||[]:[]);
+  const added=new Set();
+  const ov=document.createElement('div');ov.className='overlay';
+  ov.innerHTML=`<div class="sheet" role="dialog" aria-modal="true" aria-labelledby="edH">
+    <h2 id="edH">${isNew?'Nová položka':'Upraviť'}</h2>
+    <div class="types" id="edTypes">${['task','event','note'].map(t=>`<button type="button" class="chip t-${t}" data-type="${t}" aria-pressed="${d.type===t}">${TYPE_LABEL[t]}</button>`).join('')}</div>
+    <label>Názov<input class="field" id="edTitle" value="${esc(d.title)}"></label>
+    <div class="row"><label>Dátum<input class="field" type="date" id="edDate" value="${esc(d.date)}"></label><label>Čas<input class="field" type="time" id="edTime" value="${esc(d.time)}"></label></div>
+    <label>Poznámka<textarea class="field" id="edText" placeholder="Podrobnosti, odkazy, čo treba priniesť…">${esc(d.text)}</textarea></label>
+    <div class="imgs" id="edImgs"></div>
+    <div class="drop" ${assets?'':'hidden'}><button type="button" class="btn" id="edAdd">Pridať fotku / screenshot</button><span>alebo Ctrl+V, prípadne pretiahni sem</span><input type="file" id="edFile" accept="image/*" multiple hidden></div>
+    <div class="actions">${isNew?'':'<button type="button" class="btn danger" id="edDel">Zmazať</button>'}<span class="sp"></span><button type="button" class="btn" id="edCancel">Zrušiť</button><button type="button" class="btn primary" id="edSave">Uložiť</button></div>
+  </div>`;
+  document.body.appendChild(ov);
+  const q=s=>ov.querySelector(s);
+  const drawImgs=()=>{q('#edImgs').innerHTML=d.images.map(id=>`<figure><img src="${imgSrc(id)}" alt="Priložený obrázok" data-id="${id}"><button type="button" class="rm" data-rm="${id}">Odstrániť</button></figure>`).join('')};
+  drawImgs();
+  q('#edTypes').addEventListener('click',e=>{const c=e.target.closest('.chip');if(!c)return;d.type=c.dataset.type;ov.querySelectorAll('#edTypes .chip').forEach(x=>x.setAttribute('aria-pressed',x===c))});
+  q('#edImgs').addEventListener('click',e=>{
+    const rm=e.target.closest('[data-rm]');
+    if(rm){d.images=d.images.filter(x=>x!==rm.dataset.rm);drawImgs();return}
+    const im=e.target.closest('img');if(im){const lb=document.createElement('div');lb.className='lightbox';lb.innerHTML=`<img src="${im.src}" alt="">`;lb.onclick=()=>lb.remove();document.body.appendChild(lb)}
+  });
+  const addFiles=async files=>{
+    const holder=q('#edAdd');if(holder)holder.textContent='Nahrávam…';
+    const ids=await uploadFiles(files);ids.forEach(i=>{added.add(i);d.images.push(i)});
+    if(holder)holder.textContent='Pridať fotku / screenshot';
+    drawImgs();
+  };
+  if(q('#edAdd'))q('#edAdd').onclick=()=>q('#edFile').click();
+  if(q('#edFile'))q('#edFile').onchange=e=>{const f=[...e.target.files];e.target.value='';if(f.length)addFiles(f)};
+  const cleanup=async ids=>{if(!assets)return;for(const id of ids){try{await assets.delete(id)}catch(_){}}};
+  const close=()=>{ov.remove();document.removeEventListener('keydown',onKey);currentEditor=null};
+  const cancel=()=>{cleanup([...added]);close()};
+  const onKey=e=>{if(e.key==='Escape')cancel();if(e.key==='Enter'&&(e.ctrlKey||e.metaKey))save()};
+  document.addEventListener('keydown',onKey);
+  ov.addEventListener('mousedown',e=>{if(e.target===ov)cancel()});
+  q('#edCancel').onclick=cancel;
+  const save=async()=>{
+    if(!store)return;
+    d.title=q('#edTitle').value.trim();d.date=q('#edDate').value;d.time=q('#edTime').value;d.text=q('#edText').value;
+    if(!d.title&&!d.text&&!d.images.length){q('#edTitle').focus();return}
+    const now=Date.now();if(isNew)d.createdAt=now;d.updatedAt=now;
+    const removed=[...origImages,...added].filter(i=>!d.images.includes(i));
+    close();
+    await store.save(d);
+    cleanup(removed);
+    toast('Uložené');
+  };
+  q('#edSave').onclick=save;
+  const del=q('#edDel');
+  if(del)del.onclick=async()=>{
+    if(!del.classList.contains('armed')){del.classList.add('armed');del.textContent='Naozaj zmazať?';return}
+    close();await store.remove(d.id);cleanup([...origImages,...added]);toast('Zmazané');
+  };
+  setTimeout(()=>q('#edTitle').focus(),0);
+  currentEditor={close,addFiles};
+  return currentEditor;
+}
+
+init();
+})();
+</script>

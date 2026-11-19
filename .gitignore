@@ -1,0 +1,12 @@
+.env
+*.env
+zaloha-*.json
+.idea/workspace.xml
+.idea/shelf/
+.DS_Store
+Thumbs.db
+
+# Rozvrhy – obsahujú skratky učiteľov, triedy a učebne.
+# Repozitár je verejný (kvôli GitHub Pages), preto tieto súbory zostávajú len lokálne.
+docs/rozvrh.md
+supabase/rozvrh-data.sql

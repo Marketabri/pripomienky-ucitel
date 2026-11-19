@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="sk">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Môj diár</title>
+<meta name="theme-color" content="#2D55E0">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Figtree:wght@400;500;600;700&family=JetBrains+Mono:wght@500&display=swap">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<!-- prihlásenie -->
+<section id="login" class="login" hidden>
+  <form id="loginForm" class="login-card" autocomplete="on">
+    <h1>Môj diár</h1>
+    <label>E-mail<input class="field" id="loginEmail" type="email" autocomplete="username" required></label>
+    <label>Heslo<input class="field" id="loginPass" type="password" autocomplete="current-password" required></label>
+    <p class="err" id="loginErr" hidden></p>
+    <button class="btn primary" type="submit" id="loginBtn">Prihlásiť sa</button>
+  </form>
+</section>
+
+<!-- appka -->
+<div id="app" hidden>
+<header>
+  <div class="wrap">
+    <div class="top">
+      <h1>Môj diár</h1>
+      <nav class="tabs" role="tablist">
+        <button role="tab" data-view="tyzden">Týždeň</button>
+        <button role="tab" data-view="mesiac">Mesiac</button>
+        <button role="tab" data-view="ulohy">Úlohy</button>
+        <button role="tab" data-view="akcie">Akcie</button>
+        <button role="tab" data-view="poznamky">Poznámky</button>
+      </nav>
+      <div class="menu">
+        <button class="iconbtn" id="menuBtn" aria-label="Menu" aria-expanded="false">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+        </button>
+        <div class="menu-pop" id="menuPop" hidden>
+          <button id="exportBtn">Stiahnuť zálohu (JSON)</button>
+          <button id="logoutBtn">Odhlásiť sa</button>
+        </div>
+      </div>
+    </div>
+    <form class="quick" id="quick" autocomplete="off">
+      <div class="types" id="qTypes"></div>
+      <input class="field" id="qTitle" placeholder="Čo treba urobiť?" aria-label="Názov">
+      <input class="field" id="qDate" type="date" aria-label="Dátum">
+      <input class="field" id="qTime" type="time" aria-label="Čas">
+      <button class="btn primary" type="submit">Pridať</button>
+      <button class="btn" type="button" id="qPhoto">Fotka / screenshot</button>
+      <input type="file" id="qFile" accept="image/*" multiple hidden>
+    </form>
+    <div class="hint">Screenshot vložíš aj cez Ctrl+V kdekoľvek na stránke, alebo ho sem pretiahni myšou.</div>
+  </div>
+</header>
+<main><div class="wrap" id="view"></div></main>
+</div>
+
+<script type="module" src="js/app.js"></script>
+</body>
+</html>
