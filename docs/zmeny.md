@@ -30,6 +30,7 @@ Repozitár je verejný (GitHub Pages to na bezplatnom pláne vyžadujú), preto
 ## Denník
 | dátum | zmena |
 |---|---|
+| 2026-11-19 | Úpravy pre mobil (hlavné zariadenie): nižšia hlavička, dátum a čas vedľa seba, polia 16 px (bez priblíženia na iOS), ovládacie prvky min. 34 px, editor ako zásuvka zdola, skrytá nápoveda o Ctrl+V, prázdne dni bez zbytočnej výšky, rešpektovanie safe-area v PWA. |
 | 2026-11-19 | Databáza nasadená v Supabase. Overené cez API: 4 tabuľky existujú, RLS neprihlásenému nič nevydá, registrácia vypnutá, prihlásenie e-mailom zapnuté. |
 | 2026-11-19 | GitHub: verejný repozitár `Marketabri/pripomienky-ucitel`, zapnuté GitHub Pages (appka beží na adrese vyššie). Rozvrhy (`docs/rozvrh.md`, `supabase/rozvrh-data.sql`) pridané do `.gitignore` – zostávajú len lokálne. |
 | 2026-11-19 | Založený git repozitár, prvý commit. Zmazaný nepoužívaný `js/views/spolocne.js` (nahradil ho `js/ui.js`). Overené: syntax všetkých modulov, importy a exporty sedia, súbory sa načítajú cez lokálny server. |

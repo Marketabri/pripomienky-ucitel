@@ -23,6 +23,11 @@ Vzor je `prototyp/diar-prototyp.html` – prevziať z neho CSS premenné a vzhľ
 - Texty v rozhraní po slovensky, krátke, bez anglických slov.
 - Ovládacie prvky min. 34 px vysoké (dotyk v mobile).
 - Na mobile sa týždeň zobrazí ako dni pod sebou, od 1100 px ako 7 stĺpcov.
+- **Appka sa používa hlavne na mobile** – nové prvky najprv skontroluj na šírke 360–400 px.
+  Pravidlá pre mobil (sekcia `@media (max-width:760px)` v `css/style.css`):
+  hlavička čo najnižšia (je sticky), polia `.field` majú 16 px (inak iOS pri písaní priblíži stránku),
+  ovládacie prvky min. 34 px, editor vychádza zdola ako zásuvka (klávesnica ho neprekryje),
+  prvky len pre počítač (Ctrl+V, pretiahnutie myšou) sa skrývajú – trieda `.len-pc`.
 - Žiadne `alert()` / `confirm()` – potvrdenie priamo v rozhraní.
 
 ## Moje preferencie vzhľadu
