@@ -10,6 +10,8 @@ export const state = {
   rozvrh: [],           // riadky tabuľky rozvrh
   zvonenie: new Map(),  // hodina -> {cas_od, cas_do}
   volne: [],            // voľné dni
+  nastavenia: null,     // riadok z tabuľky nastavenia (notifikácie)
+  notifOk: false,       // je spustená migrácia 002 (notifikácie)?
   loaded: false,
 };
 
@@ -23,11 +25,12 @@ export async function init(userId) {
 
 /** Načíta všetko znova (pri štarte a keď sa appka vráti do popredia). */
 export async function reload() {
-  const [p, r, z, v] = await Promise.all([
+  const [p, r, z, v, n] = await Promise.all([
     sb.from('polozky').select('*'),
     sb.from('rozvrh').select('*'),
     sb.from('zvonenie').select('*'),
     sb.from('volne_dni').select('*'),
+    sb.from('nastavenia').select('*').maybeSingle(),
   ]);
   const err = p.error || r.error || z.error || v.error;
   if (err) throw err;
@@ -35,6 +38,9 @@ export async function reload() {
   state.rozvrh = r.data;
   state.zvonenie = new Map(z.data.map(x => [x.hodina, x]));
   state.volne = v.data;
+  // bez migrácie 002 tabuľka neexistuje – appka funguje ďalej, len bez pripomienok
+  state.notifOk = !n.error;
+  state.nastavenia = n.error ? null : n.data;
   state.loaded = true;
   emit();
 }
@@ -42,6 +48,14 @@ export async function reload() {
 const clean = it => {
   const o = { ...it };
   delete o.vytvorene; delete o.upravene; delete o.user_id;
+  if (!state.notifOk) { delete o.pripomenut_o; delete o.pripomienka_odoslana; }
+  else {
+    // zmenený čas pripomienky = poslať znova
+    const ms = x => (x ? new Date(x).getTime() : null);
+    const old = state.polozky.get(o.id);
+    if (!o.pripomenut_o) { o.pripomenut_o = null; o.pripomienka_odoslana = null; }
+    else if (!old || ms(old.pripomenut_o) !== ms(o.pripomenut_o)) o.pripomienka_odoslana = null;
+  }
   for (const k of ['datum_od', 'datum_do', 'cas_od', 'cas_do', 'kategoria', 'miesto', 'trieda']) if (o[k] === '') o[k] = null;
   return o;
 };
@@ -113,6 +127,15 @@ export async function imageUrls(paths) {
     (data || []).forEach(d => { if (d.signedUrl) urlCache.set(d.path, { url: d.signedUrl, exp: now + 50 * 60e3 }); });
   }
   return Object.fromEntries(paths.map(p => [p, urlCache.get(p)?.url || '']));
+}
+
+/* ---------- nastavenia notifikácií ---------- */
+export async function saveNastavenia(fields) {
+  const { data, error } = await sb.from('nastavenia').upsert({ ...(state.nastavenia || {}), ...fields, user_id: uid }).select().single();
+  if (error) throw error;
+  state.nastavenia = data;
+  emit();
+  return data;
 }
 
 /* ---------- záloha ---------- */

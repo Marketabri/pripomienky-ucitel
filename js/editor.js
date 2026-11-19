@@ -3,6 +3,13 @@ import * as store from './store.js';
 import { TYP, KATEGORIE, esc, toast, errText } from './ui.js';
 
 let current = null;
+
+/** ISO čas -> hodnota pre <input type="datetime-local"> v miestnom čase */
+function toLocalInput(iso) {
+  if (!iso) return '';
+  const t = new Date(iso), p = n => String(n).padStart(2, '0');
+  return `${t.getFullYear()}-${p(t.getMonth() + 1)}-${p(t.getDate())}T${p(t.getHours())}:${p(t.getMinutes())}`;
+}
 export const currentEditor = () => current;
 
 export function openEditor(item, defaults = {}) {
@@ -31,6 +38,19 @@ export function openEditor(item, defaults = {}) {
       <label>Čas od<input class="field" type="time" id="edTime" value="${v(d.cas_od)}"></label>
       <label data-only="termin akcia">Čas do<input class="field" type="time" id="edTimeTo" value="${v(d.cas_do)}"></label>
     </div>
+    ${store.state.notifOk ? `<div class="rem">
+      <label>Pripomenúť (notifikácia do mobilu)<input class="field" type="datetime-local" id="edRem" value="${toLocalInput(d.pripomenut_o)}"></label>
+      <div class="types" id="edRemQuick">
+        <button type="button" class="chip" data-rem="0">V čase</button>
+        <button type="button" class="chip" data-rem="15">15 min pred</button>
+        <button type="button" class="chip" data-rem="60">1 h pred</button>
+        <button type="button" class="chip" data-rem="1440">Deň vopred</button>
+        <button type="button" class="chip" data-rem="rano">Ráno o 7:00</button>
+        <button type="button" class="chip" data-rem="">Bez</button>
+      </div>
+      ${d.pripomienka_odoslana && d.pripomenut_o ? '<span class="hint-sm">Pripomienka už bola odoslaná. Zmeň čas, ak ju chceš znova.</span>' : ''}
+      ${!store.state.nastavenia?.ntfy_topic ? '<span class="hint-sm">Notifikácie ešte nie sú nastavené – menu ☰ → Notifikácie.</span>' : ''}
+    </div>` : ''}
     <div class="row" data-only="akcia">
       <label>Kategória<select class="field" id="edKat"><option value="">—</option>${Object.entries(KATEGORIE).map(([k, n]) => `<option value="${k}"${d.kategoria === k ? ' selected' : ''}>${n}</option>`).join('')}</select></label>
       <label>Trieda<input class="field" id="edTrieda" value="${esc(d.trieda)}" placeholder="napr. I.C"></label>
@@ -52,6 +72,24 @@ export function openEditor(item, defaults = {}) {
     d.typ = c.dataset.type;
     ov.querySelectorAll('#edTypes .chip').forEach(x => x.setAttribute('aria-pressed', x === c));
     applyType();
+  });
+
+  // rýchle tlačidlá pripomienky – počítajú z aktuálneho dátumu a času vo formulári
+  const rq = q('#edRemQuick');
+  if (rq) rq.addEventListener('click', e => {
+    const c = e.target.closest('[data-rem]'); if (!c) return;
+    const k = c.dataset.rem, date = q('#edDate').value;
+    if (k === '') { q('#edRem').value = ''; return; }
+    if (!date) { toast('Najprv vyplň dátum.'); return; }
+    const [y, m, dd] = date.split('-').map(Number);
+    let t;
+    if (k === 'rano') t = new Date(y, m - 1, dd, 7, 0);
+    else {
+      const [hh, mm] = (q('#edTime').value || '07:00').split(':').map(Number);
+      t = new Date(y, m - 1, dd, hh, mm);
+      t.setMinutes(t.getMinutes() - Number(k));
+    }
+    q('#edRem').value = toLocalInput(t.toISOString());
   });
 
   const drawImgs = async () => {
@@ -90,6 +128,7 @@ export function openEditor(item, defaults = {}) {
   ov.addEventListener('mousedown', e => { if (e.target === ov) cancel(); });
   q('#edCancel').onclick = cancel;
 
+  let confirmPast = false;
   const save = async () => {
     d.nazov = q('#edTitle').value.trim();
     d.text = q('#edText').value;
@@ -104,6 +143,11 @@ export function openEditor(item, defaults = {}) {
     if (d.datum_do && d.datum_od && d.datum_do < d.datum_od) { toast('Dátum „do“ je skôr ako začiatok.'); return; }
     if (d.datum_do && !d.datum_od) d.datum_od = d.datum_do;
     if (d.typ !== 'uloha') d.hotovo = false;
+    if (q('#edRem')) {
+      const r = q('#edRem').value;
+      d.pripomenut_o = r ? new Date(r).toISOString() : null;
+      if (r && new Date(r) < new Date() && !confirmPast) { confirmPast = true; toast('Čas pripomienky je v minulosti – neodošle sa. Uložiť znova = uložiť aj tak.'); return; }
+    }
     if (!d.nazov && !d.text && !d.obrazky.length) { q('#edTitle').focus(); return; }
     const sv = q('#edSave'); sv.disabled = true;
     try {

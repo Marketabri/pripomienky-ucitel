@@ -30,5 +30,14 @@ Vzor je `prototyp/diar-prototyp.html` – prevziať z neho CSS premenné a vzhľ
   prvky len pre počítač (Ctrl+V, pretiahnutie myšou) sa skrývajú – trieda `.len-pc`.
 - Žiadne `alert()` / `confirm()` – potvrdenie priamo v rozhraní.
 
+## Celkový charakter
+Pokojný a čistý (vybrané 19. 11. 2026): málo rámov a tieňov, viac voľného miesta,
+silná typografia, farba len ako pásik vľavo pri položke – nie ako plocha.
+- Deň v týždni nie je karta, len nadpis s linkou pod ním. Na monitore (od 1100 px) je
+  deň jemná karta, aby sa 7 stĺpcov od seba odlíšilo.
+- Rozvrh je odsadený zvislou linkou, bez farebného pozadia.
+- Číslo týždňa je malým písmom nad dátumom, nie pred ním.
+- Žltý marker zostáva len na dnešku a práve prebiehajúcej hodine – inak sa stratí.
+
 ## Moje preferencie vzhľadu
 _(sem zapisovať, čo sa mi páči / nepáči)_

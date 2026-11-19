@@ -20,6 +20,7 @@ Hlavný súbor drž krátky. Všetko podrobné patrí do modulov v `docs/`.
 
 Čítaj podľa potreby (nie sú načítané automaticky):
 - `docs/rozvrh.md` – rozvrh hodín, zvonenie, týždeň TN/TP. Čítaj pri práci s rozvrhom.
+- `docs/notifikacie.md` – pripomienky a ranný súhrn cez ntfy (pg_cron + pg_net). Čítaj pri práci s notifikáciami.
 - `docs/dizajn.md` – farby, písmo, pravidlá vzhľadu. Čítaj pri úprave vzhľadu.
 - `docs/zmeny.md` – denník zmien a zoznam nápadov. Čítaj na začiatku novej úlohy.
 - `prototyp/diar-prototyp.html` – pôvodný funkčný prototyp z Claude. Vzor pre správanie a vzhľad.

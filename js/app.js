@@ -4,6 +4,7 @@ import * as store from './store.js';
 import { parse, addDays, today, fmtShort } from './utils/datum.js';
 import { TYP, blank, toast, errText } from './ui.js';
 import { openEditor, currentEditor } from './editor.js';
+import { openNotifikacie } from './notifikacie.js';
 import * as tyzden from './views/tyzden.js';
 import * as mesiac from './views/mesiac.js';
 import * as ulohy from './views/ulohy.js';
@@ -83,6 +84,7 @@ document.addEventListener('visibilitychange', () => {
 const menuPop = $('#menuPop');
 $('#menuBtn').addEventListener('click', () => { menuPop.hidden = !menuPop.hidden; $('#menuBtn').setAttribute('aria-expanded', !menuPop.hidden); });
 document.addEventListener('click', e => { if (!e.target.closest('.menu')) menuPop.hidden = true; });
+$('#notifBtn').addEventListener('click', () => { menuPop.hidden = true; openNotifikacie(); });
 $('#logoutBtn').addEventListener('click', async () => { menuPop.hidden = true; await logout(); });
 $('#exportBtn').addEventListener('click', () => {
   menuPop.hidden = true;

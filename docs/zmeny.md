@@ -9,7 +9,8 @@
 5. ~~GitHub repozitár + GitHub Pages + PWA ikonka~~ hotové.
 6. Vyskúšať appku na počítači aj mobile: prihlásenie, pridanie úlohy/termínu/poznámky,
    obrázok (Ctrl+V aj fotka z mobilu), rozvrh v týždni, export zálohy.
-7. Doplniť plné názvy predmetov a prázdniny (`volne_dni`) – pozri `docs/rozvrh.md`.
+7. Spustiť `supabase/migracie/002_notifikacie.sql`, nainštalovať ntfy do mobilu, nastaviť v appke (☰ → Notifikácie), commit + push.
+8. Doplniť plné názvy predmetov a prázdniny (`volne_dni`) – pozri `docs/rozvrh.md`.
 
 ## Adresy
 - Appka: https://marketabri.github.io/pripomienky-ucitel/
@@ -20,7 +21,6 @@ Repozitár je verejný (GitHub Pages to na bezplatnom pláne vyžadujú), preto
 `docs/rozvrh.md` a `supabase/rozvrh-data.sql` sú v `.gitignore` a zostávajú len v počítači.
 
 ## Nápady (backlog)
-- Notifikácie cez ntfy
 - Opakované úlohy
 - Vyhľadávanie
 - Import zálohy
@@ -30,6 +30,8 @@ Repozitár je verejný (GitHub Pages to na bezplatnom pláne vyžadujú), preto
 ## Denník
 | dátum | zmena |
 |---|---|
+| 2026-11-19 | Notifikácie: migrácia 002 (pripomenut_o, tabuľka nastavenia, pg_cron + pg_net, ranný súhrn), pole Pripomenúť v editore, zvonček pri položke, menu ☰ → Notifikácie, `docs/notifikacie.md`. Otestované SQL na testovacej databáze a appka s falošnou databázou. |
+| 2026-11-19 | Nový vzhľad „pokojnejšie a čistejšie“: dni bez kariet (len nadpis s linkou), položky bez plochy, rozvrh odsadený linkou, číslo týždňa nad dátumom, jemnejšie pozadie a tiene, menej rámov. Charakter zapísaný do `docs/dizajn.md`. |
 | 2026-11-19 | Úpravy pre mobil (hlavné zariadenie): nižšia hlavička, dátum a čas vedľa seba, polia 16 px (bez priblíženia na iOS), ovládacie prvky min. 34 px, editor ako zásuvka zdola, skrytá nápoveda o Ctrl+V, prázdne dni bez zbytočnej výšky, rešpektovanie safe-area v PWA. |
 | 2026-11-19 | Databáza nasadená v Supabase. Overené cez API: 4 tabuľky existujú, RLS neprihlásenému nič nevydá, registrácia vypnutá, prihlásenie e-mailom zapnuté. |
 | 2026-11-19 | GitHub: verejný repozitár `Marketabri/pripomienky-ucitel`, zapnuté GitHub Pages (appka beží na adrese vyššie). Rozvrhy (`docs/rozvrh.md`, `supabase/rozvrh-data.sql`) pridané do `.gitignore` – zostávajú len lokálne. |

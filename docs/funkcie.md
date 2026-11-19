@@ -34,8 +34,6 @@ Stav: `[x]` hotové v ostrej verzii, `[p]` hotové len v prototype, `[ ]` pláno
 - [ ] Vyhľadávanie v položkách.
 - [ ] Opakované úlohy (každý týždeň, každý mesiac).
 - [ ] Prázdniny a voľné dni – v tie dni sa rozvrh nezobrazuje.
-- [ ] Notifikácie na mobil cez **ntfy** (pripomienka X minút pred termínom).
-  Vyžaduje niečo, čo beží na serveri v čase pripomienky (napr. Supabase Edge Function + plánovač).
-  Pred implementáciou overiť aktuálne možnosti bezplatného plánu Supabase a navrhnúť postup.
+- [x] Notifikácie na mobil cez **ntfy**: pripomienka pri položke (rýchle voľby V čase / 15 min / 1 h / deň vopred / ráno o 7:00) + voliteľný ranný súhrn dňa. Pozri `docs/notifikacie.md`.
 - [x] Svetlý/tmavý režim podľa systému.
 - [x] Zapamätanie naposledy otvorenej záložky (localStorage).

@@ -28,6 +28,8 @@ Kompletné SQL je v `supabase/schema.sql`. Tento súbor je prehľad.
 | miesto | text | |
 | trieda | text | napr. I.C |
 | obrazky | text[] | cesty v buckete `obrazky` |
+| pripomenut_o | timestamptz | kedy poslať notifikáciu (null = nie) |
+| pripomienka_odoslana | timestamptz | kedy bola odoslaná (null = ešte nie) |
 | vytvorene, upravene | timestamptz | `upravene` sa nastavuje triggerom |
 
 ### `rozvrh` – opakujúce sa hodiny
@@ -53,6 +55,19 @@ Kompletné SQL je v `supabase/schema.sql`. Tento súbor je prehľad.
 ### `volne_dni` – prázdniny a voľné dni (rozvrh sa vtedy nezobrazuje)
 | datum_od, datum_do | date |
 | nazov | text |
+
+### `nastavenia` – jeden riadok na používateľa
+| stĺpec | typ | poznámka |
+|---|---|---|
+| user_id | uuid | PK |
+| ntfy_topic | text | názov kanála ntfy (tajný) |
+| ranny_suhrn | boolean | posielať ranný súhrn |
+| ranny_cas | time | čas súhrnu (Europe/Bratislava) |
+| posledny_suhrn | date | aby sa súhrn poslal len raz denne |
+
+### Funkcie a plánovač
+- `ntfy_posli(topic, nadpis, sprava, znacky)` – odošle správu cez pg_net.
+- `posli_pripomienky()` – každú minútu (pg_cron job `diar-pripomienky`). Podrobnosti: `docs/notifikacie.md`.
 
 ## Migrácie
 Každá zmena databázy = nový súbor `supabase/migracie/NNN_popis.sql`

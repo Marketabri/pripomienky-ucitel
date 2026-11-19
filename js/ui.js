@@ -17,6 +17,7 @@ export const IC = {
   left: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg>',
   right: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"/></svg>',
   tick: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7"/></svg>',
+  bell: '<svg class="pic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 16V11a6 6 0 0 1 12 0v5l1.5 2h-15z"/><path d="M10 20a2 2 0 0 0 4 0"/></svg>',
   pic: '<svg class="pic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="9" cy="10" r="1.8"/><path d="M21 16l-5-5-8 8"/></svg>',
 };
 
@@ -67,5 +68,5 @@ export function itemRow(i, opts = {}) {
   if (i.miesto) meta.push(i.miesto);
   const check = i.typ === 'uloha'
     ? `<span class="check" role="checkbox" aria-checked="${!!i.hotovo}" aria-label="Hotovo" data-act="toggle" data-id="${i.id}">${IC.tick}</span>` : '';
-  return `<button class="item t-${i.typ}${i.hotovo ? ' done' : ''}${late ? ' late' : ''}" data-act="open" data-id="${i.id}">${check}<span class="tx"><span class="ti">${esc(i.nazov || '(bez názvu)')}</span>${meta.length ? `<span class="tm">${esc(meta.join(' · '))}${late ? ' · po termíne' : ''}</span>` : ''}</span>${(i.obrazky || []).length ? IC.pic : ''}</button>`;
+  return `<button class="item t-${i.typ}${i.hotovo ? ' done' : ''}${late ? ' late' : ''}" data-act="open" data-id="${i.id}">${check}<span class="tx"><span class="ti">${esc(i.nazov || '(bez názvu)')}</span>${meta.length ? `<span class="tm">${esc(meta.join(' · '))}${late ? ' · po termíne' : ''}</span>` : ''}</span>${i.pripomenut_o && !i.pripomienka_odoslana ? IC.bell : ''}${(i.obrazky || []).length ? IC.pic : ''}</button>`;
 }
