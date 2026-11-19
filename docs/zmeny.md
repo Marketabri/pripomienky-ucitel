@@ -1,14 +1,15 @@
 # Denník zmien a nápady
 
 ## Ďalší krok
-1. **V Supabase**: spustiť `supabase/schema.sql` + `supabase/kontrola.sql`, vypnúť registráciu,
-   vytvoriť účet (Auto Confirm), do Redirect URLs pridať `http://localhost:63342`
-   aj `https://marketabri.github.io/pripomienky-ucitel/`.
+1. ~~Supabase projekt, schéma, vypnutá registrácia, účet~~ hotové
+   (overené cez API: tabuľky existujú, RLS chráni dáta, registrácia vypnutá).
 2. ~~Postaviť ostrú verziu~~ hotové – kľúč v `js/config.js` je doplnený a funguje.
-3. Spustiť `supabase/rozvrh-data.sql` (až po vytvorení účtu, prepísať v ňom `TVOJ_EMAIL`).
+3. ~~Spustiť `supabase/rozvrh-data.sql`~~ hotové.
 4. ~~Pridať školské akcie a rozvrh do týždňa~~ hotové (v kóde).
 5. ~~GitHub repozitár + GitHub Pages + PWA ikonka~~ hotové.
-6. Vyskúšať appku (prihlásenie, pridanie položky, obrázok) na počítači aj mobile.
+6. Vyskúšať appku na počítači aj mobile: prihlásenie, pridanie úlohy/termínu/poznámky,
+   obrázok (Ctrl+V aj fotka z mobilu), rozvrh v týždni, export zálohy.
+7. Doplniť plné názvy predmetov a prázdniny (`volne_dni`) – pozri `docs/rozvrh.md`.
 
 ## Adresy
 - Appka: https://marketabri.github.io/pripomienky-ucitel/
@@ -29,6 +30,7 @@ Repozitár je verejný (GitHub Pages to na bezplatnom pláne vyžadujú), preto
 ## Denník
 | dátum | zmena |
 |---|---|
+| 2026-11-19 | Databáza nasadená v Supabase. Overené cez API: 4 tabuľky existujú, RLS neprihlásenému nič nevydá, registrácia vypnutá, prihlásenie e-mailom zapnuté. |
 | 2026-11-19 | GitHub: verejný repozitár `Marketabri/pripomienky-ucitel`, zapnuté GitHub Pages (appka beží na adrese vyššie). Rozvrhy (`docs/rozvrh.md`, `supabase/rozvrh-data.sql`) pridané do `.gitignore` – zostávajú len lokálne. |
 | 2026-11-19 | Založený git repozitár, prvý commit. Zmazaný nepoužívaný `js/views/spolocne.js` (nahradil ho `js/ui.js`). Overené: syntax všetkých modulov, importy a exporty sedia, súbory sa načítajú cez lokálny server. |
 | 2026-11-19 | Ostrá verzia: index.html, css/, js/ (prihlásenie, Supabase, obrázky v súkromnom buckete, týždeň s rozvrhom Môj/I.C/Skryť, mesiac, úlohy, akcie, poznámky, export zálohy), PWA (manifest, sw.js, ikony). Otestované s falošnou databázou. |
