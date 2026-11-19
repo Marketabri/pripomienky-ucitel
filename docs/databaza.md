@@ -17,7 +17,7 @@ Kompletné SQL je v `supabase/schema.sql`. Tento súbor je prehľad.
 |---|---|---|
 | id | uuid | PK |
 | user_id | uuid | vlastník, predvolene `auth.uid()` |
-| typ | text | `uloha`, `termin`, `poznamka`, `akcia` |
+| typ | text | `uloha`, `termin`, `poznamka`, `akcia`, `zapis` (rýchly zápisok bez dátumu) |
 | nazov | text | |
 | text | text | podrobnosti |
 | datum_od | date | null = bez termínu |

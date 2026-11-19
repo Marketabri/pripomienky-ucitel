@@ -15,6 +15,9 @@ Stav: `[x]` hotové v ostrej verzii, `[p]` hotové len v prototype, `[ ]` pláno
 - [x] Editor: typ, názov, dátum, čas, text, obrázky, zmazanie s potvrdením (druhé kliknutie).
 - [x] Obrázky: tlačidlo (v mobile fotoaparát), Ctrl+V screenshot, pretiahnutie myšou.
 
+- [x] **Zápisok** – rýchla poznámka bez dátumu v Zápisníku; tlačidlom „Zaradiť“ sa z nej stane
+  úloha, termín, poznámka alebo akcia s dátumom. Podrobnosti: `docs/zapisnik.md`.
+
 ## Zobrazenia (záložky)
 - [x] **Týždeň** – Po–Ne, dnešok zvýraznený, číslo týždňa, súhrn (otvorené úlohy, termíny, po termíne).
 - [x] V týždni aj **rozvrh**: hodiny dňa pod dátumom, prepínač Môj / I.C / Skryť.
@@ -26,6 +29,8 @@ Stav: `[x]` hotové v ostrej verzii, `[p]` hotové len v prototype, `[ ]` pláno
 - [ ] **Rozvrh** – celý týždenný rozvrh v tabuľke (môj / I.C).
 
 - [x] Načítanie zmien z druhého zariadenia, keď sa appka vráti do popredia (bez živej synchronizácie).
+
+- [x] **Zápisník** – pole na rýchle písanie, zoznam zápiskov, fotka, čítanie textu z fotky (OCR).
 
 ## Ostatné
 - [x] Prihlásenie e-mailom a heslom, zostať prihlásená. Registrácia vypnutá.

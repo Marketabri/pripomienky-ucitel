@@ -13,7 +13,7 @@ end $$;
 create table if not exists public.polozky (
   id          uuid primary key default gen_random_uuid(),
   user_id     uuid not null default auth.uid() references auth.users(id) on delete cascade,
-  typ         text not null check (typ in ('uloha','termin','poznamka','akcia')),
+  typ         text not null check (typ in ('uloha','termin','poznamka','akcia','zapis')),
   nazov       text not null default '',
   text        text not null default '',
   datum_od    date,
@@ -30,6 +30,10 @@ create table if not exists public.polozky (
   check (datum_do is null or datum_od is null or datum_do >= datum_od)
 );
 create index if not exists polozky_user_datum on public.polozky (user_id, datum_od);
+-- zápisky (typ = zapis) sa vyberajú podľa času vzniku, najnovší hore
+create index if not exists polozky_zapis
+  on public.polozky (user_id, vytvorene desc)
+  where typ = 'zapis';
 
 drop trigger if exists polozky_upravene on public.polozky;
 create trigger polozky_upravene before update on public.polozky

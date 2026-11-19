@@ -6,6 +6,7 @@ export const TYP = {
   termin: 'Termín',
   akcia: 'Akcia',
   poznamka: 'Poznámka',
+  zapis: 'Zápisok',   // rýchla poznámka bez dátumu (záložka Zápisník)
 };
 export const KATEGORIE = {
   vylet: 'Výlet', sutaz: 'Súťaž', exkurzia: 'Exkurzia', erasmus: 'Erasmus',

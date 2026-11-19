@@ -10,8 +10,9 @@ import * as mesiac from './views/mesiac.js';
 import * as ulohy from './views/ulohy.js';
 import * as akcie from './views/akcie.js';
 import * as poznamky from './views/poznamky.js';
+import * as zapisnik from './views/zapisnik.js';
 
-const VIEWS = { tyzden, mesiac, ulohy, akcie, poznamky };
+const VIEWS = { tyzden, mesiac, ulohy, akcie, poznamky, zapisnik };
 const $ = s => document.querySelector(s);
 const viewEl = $('#view');
 
@@ -32,6 +33,7 @@ function render() {
   if (!store.state.loaded) { viewEl.innerHTML = blank('Načítavam diár…', 'Chvíľku strpenia.'); return; }
   viewEl.innerHTML = VIEWS[ui.view].render(ui);
   if (ui.view === 'poznamky') poznamky.hydrate(viewEl);
+  if (ui.view === 'zapisnik') { zapisnik.hydrate(viewEl); obnovPad(); }
 }
 store.onChange(render);
 
@@ -115,6 +117,11 @@ viewEl.addEventListener('click', async e => {
   if (a === 'open') return openEditor(store.state.polozky.get(el.dataset.id));
   if (a === 'addOn') return openEditor(null, { typ: qType === 'poznamka' ? 'uloha' : qType, datum_od: el.dataset.date });
   if (a === 'newNote') return openEditor(null, { typ: 'poznamka' });
+  if (a === 'zaradit') {
+    const z = store.state.polozky.get(el.dataset.id);
+    // tá istá položka, len už nie zápisok – dostane typ a dátum
+    return z && openEditor({ ...z, typ: 'uloha', datum_od: z.datum_od || today() });
+  }
   if (a === 'newAkcia') return openEditor(null, { typ: 'akcia', kategoria: ui.kategoria, datum_od: today() });
   if (a === 'gotoWeek') { ui.anchor = parse(el.dataset.date); ui.view = 'tyzden'; remember('view', 'tyzden'); return render(); }
   if (a === 'today') { ui.anchor = new Date(); return render(); }
@@ -132,7 +139,7 @@ viewEl.addEventListener('click', async e => {
 let qType = 'uloha';
 const qDate = $('#qDate');
 const PLACEHOLDER = { uloha: 'Čo treba urobiť? napr. Odovzdať známky I.C', termin: 'Aký termín? napr. Rodičovské združenie', akcia: 'Aká akcia? napr. Exkurzia Volkswagen', poznamka: 'Názov poznámky' };
-$('#qTypes').innerHTML = Object.keys(TYP).map(t => `<button type="button" class="chip t-${t}" data-type="${t}" aria-pressed="${t === qType}">${TYP[t]}</button>`).join('');
+$('#qTypes').innerHTML = Object.keys(TYP).filter(t => t !== 'zapis').map(t => `<button type="button" class="chip t-${t}" data-type="${t}" aria-pressed="${t === qType}">${TYP[t]}</button>`).join('');
 function setQType(t) {
   qType = t;
   document.querySelectorAll('#qTypes .chip').forEach(c => c.setAttribute('aria-pressed', c.dataset.type === t));
@@ -182,6 +189,159 @@ document.addEventListener('drop', e => {
   e.preventDefault();
   const ed = currentEditor();
   if (ed) ed.addFiles(files); else newWithImages(files, 'Obrázok ' + fmtShort(today()));
+});
+
+/* ---------- zápisník ---------- */
+// Rozpísaný zápisok prežije prekreslenie aj zatvorenie appky.
+const padObrazky = () => { try { return JSON.parse(recall('pad-obrazky', '[]')) || []; } catch { return []; } };
+const pad = {
+  text: recall('pad', ''),
+  obrazky: padObrazky(),
+  subory: [],   // originály súborov držíme len v pamäti (kvôli čítaniu textu)
+};
+const padZapamataj = () => {
+  remember('pad', pad.text);
+  remember('pad-obrazky', JSON.stringify(pad.obrazky));
+};
+let padZaneprazdneny = false;
+
+function obnovPad() {
+  const ta = $('#padText');
+  if (!ta) return;
+  if (ta.value !== pad.text) ta.value = pad.text;
+  vykresliPadObrazky();
+  $('#padCitaj').hidden = !pad.obrazky.length;
+}
+
+function vykresliPadObrazky() {
+  const box = $('#padImgs');
+  if (!box) return;
+  box.hidden = !pad.obrazky.length;
+  box.innerHTML = pad.obrazky.map((cesta, i) =>
+    `<figure><img data-path="${cesta}" alt="Priložená fotka">` +
+    `<button type="button" class="rm" data-padrm="${i}">Odstrániť</button></figure>`).join('');
+  zapisnik.hydrate(box);
+}
+
+function padStav(text) {
+  const el = $('#padStav');
+  if (el) el.textContent = text || '';
+}
+
+async function padPridajSubory(files) {
+  if (!files.length) return;
+  padStav('Nahrávam fotku…');
+  try {
+    const cesty = await store.uploadImages(files);
+    pad.obrazky.push(...cesty);
+    pad.subory.push(...files);     // originál si držíme kvôli čítaniu textu
+    padZapamataj();
+    vykresliPadObrazky();
+    $('#padCitaj').hidden = false;
+    padStav('');
+  } catch (e) {
+    padStav('');
+    toast('Fotku sa nepodarilo nahrať. ' + (e.message || ''));
+  }
+}
+
+async function padPrecitajText() {
+  if (padZaneprazdneny || !pad.obrazky.length) return;
+  let zdroj = pad.subory[pad.subory.length - 1];
+  if (!zdroj) {
+    // po obnovení stránky už súbor v pamäti nie je – použijeme dočasnú adresu z úložiska
+    const cesta = pad.obrazky[pad.obrazky.length - 1];
+    const urls = await store.imageUrls([cesta]);
+    zdroj = urls[cesta];
+  }
+  if (!zdroj) return;
+  padZaneprazdneny = true;
+  $('#padCitaj').disabled = true;
+  padStav('Pripravujem… (prvýkrát sa sťahuje nástroj, chvíľu to trvá)');
+  try {
+    const { precitajText } = await import('./ocr.js');
+    const text = await precitajText(zdroj, p => padStav('Čítam text… ' + p + ' %'));
+    if (!text) {
+      toast('Na fotke som nenašiel žiadny text.');
+    } else {
+      const ta = $('#padText');
+      pad.text = (pad.text ? pad.text.trimEnd() + '\n\n' : '') + text;
+      padZapamataj();
+      if (ta) { ta.value = pad.text; ta.focus(); }
+      toast('Text doplnený – skontroluj ho.');
+    }
+    padStav('');
+  } catch (e) {
+    padStav('');
+    const { chybaOcr } = await import('./ocr.js').catch(() => ({ chybaOcr: () => 'Čítanie textu zlyhalo.' }));
+    toast(chybaOcr(e));
+  }
+  padZaneprazdneny = false;
+  const btn = $('#padCitaj');
+  if (btn) btn.disabled = false;
+}
+
+async function padUloz() {
+  const text = pad.text.trim();
+  if (!text && !pad.obrazky.length) return;
+  const riadky = text.split('\n');
+  try {
+    await store.save({
+      id: crypto.randomUUID(),
+      typ: 'zapis',
+      nazov: riadky[0].slice(0, 160),
+      text: riadky.slice(1).join('\n').trim(),
+      datum_od: '', cas_od: '', hotovo: false,
+      obrazky: pad.obrazky.slice(),
+    });
+    pad.text = ''; pad.obrazky = []; pad.subory = [];
+    padZapamataj();
+    const ta = $('#padText');
+    if (ta) { ta.value = ''; ta.focus(); }
+    vykresliPadObrazky();
+    $('#padCitaj').hidden = true;
+    toast('Zapísané');
+  } catch (e) {
+    toast(errText(e));
+  }
+}
+
+// formulár sa vykresľuje nanovo, preto obsluha cez delegovanie
+viewEl.addEventListener('input', e => {
+  if (e.target.id !== 'padText') return;
+  pad.text = e.target.value;
+  padZapamataj();
+});
+viewEl.addEventListener('keydown', e => {
+  if (e.target.id === 'padText' && e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
+    e.preventDefault();
+    padUloz();
+  }
+});
+viewEl.addEventListener('submit', e => {
+  if (e.target.id !== 'padForm') return;
+  e.preventDefault();
+  padUloz();
+});
+viewEl.addEventListener('click', e => {
+  if (e.target.closest('#padFotka')) return $('#padSubor').click();
+  if (e.target.closest('#padCitaj')) return padPrecitajText();
+  const rm = e.target.closest('[data-padrm]');
+  if (rm) {
+    const i = Number(rm.dataset.padrm);
+    store.deleteImages([pad.obrazky[i]]).catch(() => {});
+    pad.obrazky.splice(i, 1);
+    pad.subory.splice(i, 1);
+    padZapamataj();
+    vykresliPadObrazky();
+    $('#padCitaj').hidden = !pad.obrazky.length;
+  }
+});
+viewEl.addEventListener('change', e => {
+  if (e.target.id !== 'padSubor') return;
+  const files = imagesFrom(e.target.files);
+  e.target.value = '';
+  padPridajSubory(files);
 });
 
 /* ---------- PWA ---------- */
