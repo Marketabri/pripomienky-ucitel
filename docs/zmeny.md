@@ -1,11 +1,22 @@
 # Denník zmien a nápady
 
 ## Ďalší krok
-1. Založiť Supabase projekt, spustiť `supabase/schema.sql`, vypnúť registráciu, vytvoriť účet.
-2. ~~Postaviť ostrú verziu~~ hotové – doplniť kľúč do `js/config.js` a vyskúšať.
-3. Spustiť `supabase/rozvrh-data.sql` (rozvrhy sú už prepísané v `docs/rozvrh.md`).
+1. **V Supabase**: spustiť `supabase/schema.sql` + `supabase/kontrola.sql`, vypnúť registráciu,
+   vytvoriť účet (Auto Confirm), do Redirect URLs pridať `http://localhost:63342`
+   aj `https://marketabri.github.io/pripomienky-ucitel/`.
+2. ~~Postaviť ostrú verziu~~ hotové – kľúč v `js/config.js` je doplnený a funguje.
+3. Spustiť `supabase/rozvrh-data.sql` (až po vytvorení účtu, prepísať v ňom `TVOJ_EMAIL`).
 4. ~~Pridať školské akcie a rozvrh do týždňa~~ hotové (v kóde).
-5. GitHub repozitár + GitHub Pages + PWA ikonka.
+5. ~~GitHub repozitár + GitHub Pages + PWA ikonka~~ hotové.
+6. Vyskúšať appku (prihlásenie, pridanie položky, obrázok) na počítači aj mobile.
+
+## Adresy
+- Appka: https://marketabri.github.io/pripomienky-ucitel/
+- Repozitár (verejný): https://github.com/Marketabri/pripomienky-ucitel
+- Supabase projekt: https://niiwcbetbbgkkdzslyse.supabase.co
+
+Repozitár je verejný (GitHub Pages to na bezplatnom pláne vyžadujú), preto
+`docs/rozvrh.md` a `supabase/rozvrh-data.sql` sú v `.gitignore` a zostávajú len v počítači.
 
 ## Nápady (backlog)
 - Notifikácie cez ntfy
@@ -18,6 +29,7 @@
 ## Denník
 | dátum | zmena |
 |---|---|
+| 2026-11-19 | GitHub: verejný repozitár `Marketabri/pripomienky-ucitel`, zapnuté GitHub Pages (appka beží na adrese vyššie). Rozvrhy (`docs/rozvrh.md`, `supabase/rozvrh-data.sql`) pridané do `.gitignore` – zostávajú len lokálne. |
 | 2026-11-19 | Založený git repozitár, prvý commit. Zmazaný nepoužívaný `js/views/spolocne.js` (nahradil ho `js/ui.js`). Overené: syntax všetkých modulov, importy a exporty sedia, súbory sa načítajú cez lokálny server. |
 | 2026-11-19 | Ostrá verzia: index.html, css/, js/ (prihlásenie, Supabase, obrázky v súkromnom buckete, týždeň s rozvrhom Môj/I.C/Skryť, mesiac, úlohy, akcie, poznámky, export zálohy), PWA (manifest, sw.js, ikony). Otestované s falošnou databázou. |
 | 2026-11-19 | Rozvrh: hodiny obmedzené na 1–8 (schema.sql + migrácia 001). Do `js/config.js` doplnená adresa Supabase projektu. Pridaný `supabase/kontrola.sql` a priečinok `supabase/migracie/`. Opravená politika úložiska `obrazky_upravit` (doplnené `with check`). |
